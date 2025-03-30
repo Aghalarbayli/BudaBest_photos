@@ -89,13 +89,17 @@
     </div>
 
     <script>
+        // Base URL for the photo gallery
+        const BASE_URL = 'https://photos.budabestapartments.com';
+        
         // Supported image formats
         const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
 
         // Function to scan directory for images
         async function scanDirectory(path = '.') {
             try {
-                const response = await fetch(`${path}`);
+                const url = path === '.' ? BASE_URL : `${BASE_URL}/${path}`;
+                const response = await fetch(url);
                 const text = await response.text();
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(text, 'text/html');
@@ -133,7 +137,7 @@
             };
             
             const { folders, images } = await scanDirectory(path);
-            result.images = images.map(image => `${path}/${image}`);
+            result.images = images.map(image => `${path === '.' ? '' : path + '/'}${image}`);
             
             // Only scan subfolders if we're at the root
             if (path === '.') {
@@ -179,7 +183,7 @@
                     const subItems = await scanDirectory(`${path}/${folder}`);
                     
                     subItems.images.forEach(image => {
-                        const imageItem = createImageElement(`${path}/${folder}/${image}`, image);
+                        const imageItem = createImageElement(`${BASE_URL}/${path}/${folder}/${image}`, image);
                         imageGrid.appendChild(imageItem);
                     });
 
@@ -202,7 +206,7 @@
                 imageGrid.className = 'image-grid';
                 
                 images.forEach(image => {
-                    const imageItem = createImageElement(`${path}/${image}`, image);
+                    const imageItem = createImageElement(`${BASE_URL}/${path === '.' ? '' : path + '/'}${image}`, image);
                     imageGrid.appendChild(imageItem);
                 });
 
