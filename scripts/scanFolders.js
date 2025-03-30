@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const PHOTOS_DIR = './public/photos';  // Directory containing all photos
-const OUTPUT_FILE = './public/gallery-data.json';
+const API_DIR = './public/api';  // Directory for API JSON files
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
 
 async function isDirectory(path) {
@@ -28,11 +28,25 @@ async function scanDirectory(dirPath) {
 
             if (await isDirectory(fullPath)) {
                 const folderData = await scanDirectory(fullPath);
-                result.folders.push({
+                const folderInfo = {
                     name: entry.name,
                     path: relativePath,
-                    images: folderData.images.map(img => path.join(relativePath, img))
-                });
+                    ...folderData
+                };
+                result.folders.push(folderInfo);
+
+                // Create JSON file for this folder
+                const folderApiPath = path.join(API_DIR, relativePath);
+                await fs.mkdir(folderApiPath, { recursive: true });
+                await fs.writeFile(
+                    path.join(folderApiPath, 'index.json'),
+                    JSON.stringify({
+                        lastUpdated: new Date().toISOString(),
+                        currentPath: relativePath,
+                        ...folderData
+                    }, null, 2),
+                    'utf8'
+                );
             } else if (IMAGE_EXTENSIONS.some(ext => entry.name.toLowerCase().endsWith(ext))) {
                 result.images.push(entry.name);
             }
@@ -47,30 +61,35 @@ async function scanDirectory(dirPath) {
 
 async function generateGalleryData() {
     try {
-        // Create photos directory if it doesn't exist
+        // Create necessary directories
         await fs.mkdir(PHOTOS_DIR, { recursive: true });
+        await fs.mkdir(API_DIR, { recursive: true });
 
-        const data = await scanDirectory(PHOTOS_DIR);
-        const galleryData = {
+        // Scan the root directory
+        const rootData = await scanDirectory(PHOTOS_DIR);
+        
+        // Create root index.json
+        const rootApiData = {
             lastUpdated: new Date().toISOString(),
-            root: data
+            currentPath: '.',
+            ...rootData
         };
 
-        // Ensure public directory exists
-        await fs.mkdir(path.dirname(OUTPUT_FILE), { recursive: true });
-        
-        // Write the gallery data to a JSON file
         await fs.writeFile(
-            OUTPUT_FILE,
-            JSON.stringify(galleryData, null, 2),
+            path.join(API_DIR, 'index.json'),
+            JSON.stringify(rootApiData, null, 2),
             'utf8'
         );
 
         console.log('Gallery data has been generated successfully!');
+        console.log('API endpoints created:');
+        console.log('- /api/index.json (root gallery)');
+        console.log('- /api/{folder_path}/index.json (for each subfolder)');
     } catch (error) {
         console.error('Error generating gallery data:', error);
         process.exit(1);
     }
 }
 
+// Ensure the script runs
 generateGalleryData();
