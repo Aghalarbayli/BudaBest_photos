@@ -33,6 +33,38 @@ async function scanDirectory(path = '.') {
     }
 }
 
+// Function to get complete gallery data
+async function getGalleryData(path = '.') {
+    const result = {
+        currentPath: path,
+        folders: [],
+        images: []
+    };
+    
+    const { folders, images } = await scanDirectory(path);
+    result.images = images.map(image => `${path}/${image}`);
+    
+    // Only scan subfolders if we're at the root
+    if (path === '.') {
+        for (const folder of folders) {
+            const folderPath = `${path}/${folder}`;
+            const folderData = await scanDirectory(folderPath);
+            result.folders.push({
+                name: folder,
+                path: folderPath,
+                images: folderData.images.map(image => `${folderPath}/${image}`)
+            });
+        }
+    } else {
+        result.folders = folders.map(folder => ({
+            name: folder,
+            path: `${path}/${folder}`
+        }));
+    }
+    
+    return result;
+}
+
 // Function to create gallery HTML
 async function createGallery(path = '.') {
     const galleryDiv = document.getElementById('gallery');
@@ -72,7 +104,7 @@ async function createGallery(path = '.') {
         
         const folderName = document.createElement('div');
         folderName.className = 'folder-name';
-        folderName.textContent = 'Main Folder';
+        folderName.textContent = path === '.' ? 'Main Folder' : path;
         mainFolder.appendChild(folderName);
 
         const imageGrid = document.createElement('div');
@@ -127,7 +159,16 @@ modal.onclick = (e) => {
     }
 }
 
-// Initialize gallery
-document.addEventListener('DOMContentLoaded', () => {
-    createGallery();
+// Initialize gallery or return JSON data based on URL parameter
+document.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const format = urlParams.get('format');
+    const path = urlParams.get('path') || '.';
+    
+    if (format === 'json') {
+        const data = await getGalleryData(path);
+        document.body.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    } else {
+        createGallery(path);
+    }
 });
