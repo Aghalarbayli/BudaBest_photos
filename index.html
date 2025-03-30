@@ -95,11 +95,22 @@
         // Supported image formats
         const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
 
+        // Function to encode URL components properly
+        function encodePathComponent(path) {
+            return path.split('/').map(component => encodeURIComponent(component)).join('/');
+        }
+
         // Function to scan directory for images
         async function scanDirectory(path = '.') {
             try {
-                const url = path === '.' ? BASE_URL : `${BASE_URL}/${path}`;
+                const encodedPath = path === '.' ? '' : encodePathComponent(path);
+                const url = `${BASE_URL}/${encodedPath}`;
+                
                 const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const text = await response.text();
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(text, 'text/html');
@@ -114,10 +125,13 @@
                     const href = link.getAttribute('href');
                     if (!href || href === '../' || href === './') continue;
 
-                    if (href.endsWith('/')) {
-                        items.folders.push(href.slice(0, -1));
-                    } else if (IMAGE_EXTENSIONS.some(ext => href.toLowerCase().endsWith(ext))) {
-                        items.images.push(href);
+                    // Decode the href to handle special characters
+                    const decodedHref = decodeURIComponent(href);
+
+                    if (decodedHref.endsWith('/')) {
+                        items.folders.push(decodedHref.slice(0, -1));
+                    } else if (IMAGE_EXTENSIONS.some(ext => decodedHref.toLowerCase().endsWith(ext))) {
+                        items.images.push(decodedHref);
                     }
                 }
 
@@ -142,7 +156,7 @@
             // Only scan subfolders if we're at the root
             if (path === '.') {
                 for (const folder of folders) {
-                    const folderPath = `${path}/${folder}`;
+                    const folderPath = folder;
                     const folderData = await scanDirectory(folderPath);
                     result.folders.push({
                         name: folder,
@@ -180,10 +194,11 @@
                     imageGrid.className = 'image-grid';
                     
                     // Scan subfolder for images
-                    const subItems = await scanDirectory(`${path}/${folder}`);
+                    const subItems = await scanDirectory(`${path === '.' ? '' : path + '/'}${folder}`);
                     
                     subItems.images.forEach(image => {
-                        const imageItem = createImageElement(`${BASE_URL}/${path}/${folder}/${image}`, image);
+                        const fullPath = `${path === '.' ? '' : path + '/'}${folder}/${image}`;
+                        const imageItem = createImageElement(`${BASE_URL}/${encodePathComponent(fullPath)}`, image);
                         imageGrid.appendChild(imageItem);
                     });
 
@@ -206,7 +221,8 @@
                 imageGrid.className = 'image-grid';
                 
                 images.forEach(image => {
-                    const imageItem = createImageElement(`${BASE_URL}/${path === '.' ? '' : path + '/'}${image}`, image);
+                    const fullPath = `${path === '.' ? '' : path + '/'}${image}`;
+                    const imageItem = createImageElement(`${BASE_URL}/${encodePathComponent(fullPath)}`, image);
                     imageGrid.appendChild(imageItem);
                 });
 
