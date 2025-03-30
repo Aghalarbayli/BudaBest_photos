@@ -2,3 +2,6 @@
 Romance Apartment/50 SHADES OF GRAY/.DS_Store
 Romance Apartment/50 SHADES OF GRAY/.DS_Store
 Romance Apartment/50 SHADES OF GRAY/.DS_Store
+/dist
+/node_modules
+/public/api
