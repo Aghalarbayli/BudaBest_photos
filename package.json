@@ -4,9 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "node scripts/scanFolders.js && vite",
+    "build": "node scripts/scanFolders.js && vite build",
+    "preview": "vite preview",
+    "scan": "node scripts/scanFolders.js"
   },
   "devDependencies": {
     "vite": "^5.4.2"
