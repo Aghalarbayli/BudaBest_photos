@@ -14,6 +14,16 @@ async function isDirectory(path) {
     }
 }
 
+async function cleanDirectory(dir) {
+    try {
+        await fs.rm(dir, { recursive: true, force: true });
+        await fs.mkdir(dir, { recursive: true });
+        console.log(`Cleaned directory: ${dir}`);
+    } catch (error) {
+        console.error(`Error cleaning directory ${dir}:`, error);
+    }
+}
+
 async function scanDirectory(dirPath) {
     try {
         const entries = await fs.readdir(dirPath, { withFileTypes: true });
@@ -48,7 +58,7 @@ async function scanDirectory(dirPath) {
                     'utf8'
                 );
             } else if (IMAGE_EXTENSIONS.some(ext => entry.name.toLowerCase().endsWith(ext))) {
-                result.images.push(entry.name);
+                result.images.push(path.join('/photos', relativePath, entry.name));
             }
         }
 
@@ -63,7 +73,9 @@ async function generateGalleryData() {
     try {
         // Create necessary directories
         await fs.mkdir(PHOTOS_DIR, { recursive: true });
-        await fs.mkdir(API_DIR, { recursive: true });
+        
+        // Clean and recreate API directory to ensure fresh data
+        await cleanDirectory(API_DIR);
 
         // Scan the root directory
         const rootData = await scanDirectory(PHOTOS_DIR);
