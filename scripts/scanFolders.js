@@ -58,7 +58,8 @@ async function scanDirectory(dirPath) {
                     'utf8'
                 );
             } else if (IMAGE_EXTENSIONS.some(ext => entry.name.toLowerCase().endsWith(ext))) {
-                result.images.push(path.join('/photos', relativePath, entry.name));
+                // Fix: Don't include the filename twice in the path
+                result.images.push(path.join('/photos', relativePath));
             }
         }
 
