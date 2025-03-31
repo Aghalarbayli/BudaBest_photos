@@ -22,6 +22,11 @@ export default defineConfig({
         name: 'serve-json-files',
         configureServer(server) {
           server.middlewares.use('/api', (req, res, next) => {
+            // Add cache control headers
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+
             const jsonPath = path.join(
               process.cwd(),
               'public',
@@ -31,8 +36,10 @@ export default defineConfig({
             console.log(`[API Request] ${req.url}`);
             console.log(`[Resolved Path] ${jsonPath}`);
 
+            // Check if file exists in real-time
             if (fs.existsSync(jsonPath)) {
               try {
+                // Read file content in real-time
                 const jsonContent = fs.readFileSync(jsonPath, 'utf-8');
                 // Verify that the content is valid JSON
                 JSON.parse(jsonContent);
@@ -50,6 +57,14 @@ export default defineConfig({
               res.statusCode = 404;
               res.end(JSON.stringify({ error: 'Not Found' }));
             }
+          });
+
+          // Add middleware for photos directory
+          server.middlewares.use('/photos', (req, res, next) => {
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+            next();
           });
         }
       }
