@@ -5,13 +5,21 @@ import { mkdir } from 'fs/promises';
 const BASE_URL = 'https://photos.budabestapartments.com';
 const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
 const PUBLIC_DIR = 'public';
+const JSON_DIR = 'json';
 
-async function ensurePublicDirectory() {
+async function ensureDirectories() {
   try {
     await stat(PUBLIC_DIR);
   } catch {
     await mkdir(PUBLIC_DIR);
     console.log('Created public directory');
+  }
+
+  try {
+    await stat(JSON_DIR);
+  } catch {
+    await mkdir(JSON_DIR);
+    console.log('Created json directory');
   }
 }
 
@@ -27,15 +35,18 @@ async function scanDirectory(dir) {
       // Recursively scan subdirectories
       const subDirFiles = await scanDirectory(path);
       const relativePath = relative(PUBLIC_DIR, path);
-      const jsonFileName = `${relativePath.replace(/\//g, '-')}.json`;
       
       // Create JSON file for this directory
+      const jsonFileName = join(JSON_DIR, `${relativePath.replace(/\//g, '-') || 'root'}.json`);
       const urls = Object.values(subDirFiles).flat();
+      
       await writeFile(jsonFileName, JSON.stringify({
-        folder: relativePath,
+        folder: relativePath || 'root',
+        updated: new Date().toISOString(),
         files: urls
       }, null, 2));
       
+      console.log(`Created JSON file for folder: ${relativePath || 'root'}`);
       results[relativePath] = urls;
     } else {
       // Check if file is an image
@@ -58,16 +69,19 @@ async function scanDirectory(dir) {
 async function main() {
   try {
     console.log('Starting to scan directories...');
-    await ensurePublicDirectory();
+    await ensureDirectories();
     const allFiles = await scanDirectory(PUBLIC_DIR);
     
-    // Create a master JSON file with all directories
-    await writeFile('all-photos.json', JSON.stringify({
+    // Create a master index JSON file
+    await writeFile(join(JSON_DIR, 'index.json'), JSON.stringify({
       updated: new Date().toISOString(),
-      directories: allFiles
+      folders: Object.keys(allFiles).map(folder => ({
+        name: folder || 'root',
+        jsonFile: `${(folder || 'root').replace(/\//g, '-')}.json`
+      }))
     }, null, 2));
     
-    console.log('Scan complete! JSON files have been created.');
+    console.log('Scan complete! JSON files have been created in the json directory.');
   } catch (error) {
     console.error('Error:', error);
   }
