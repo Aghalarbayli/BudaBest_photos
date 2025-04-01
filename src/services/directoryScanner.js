@@ -29,9 +29,9 @@ export async function scanDirectory(dir) {
         if (processedImage) {
           const urlBase = config.baseUrl;
           results[relativePath].push({
-            original: `${urlBase}/${relative(config.directories.public, processedImage.original)}`,
-            thumbnail: `${urlBase}/${relative(config.directories.public, processedImage.thumbnail)}`,
-            regular: `${urlBase}/${relative(config.directories.public, processedImage.regular)}`
+            original: `${urlBase}/public/${relative(config.directories.public, processedImage.original)}`,
+            thumbnail: `${urlBase}/public/${relative(config.directories.public, processedImage.thumbnail)}`,
+            regular: `${urlBase}/public/${relative(config.directories.public, processedImage.regular)}`
           });
         }
       }
