@@ -7,3 +7,6 @@ Romance Apartment/50 SHADES OF GRAY/.DS_Store
 /public/api
 /dist
 /json
+all-photos.json
+package-lock.json
+/public
