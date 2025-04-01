@@ -1,15 +1,9 @@
 {
-  "name": "vite-starter",
+  "name": "photo-scanner",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "node scripts/scanFolders.js && vite",
-    "build": "node scripts/scanFolders.js && vite build",
-    "preview": "vite preview",
-    "scan": "node scripts/scanFolders.js"
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "devDependencies": {
-    "vite": "^5.4.2"
-  }
+  "type": "module"
 }
