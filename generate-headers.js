@@ -12,5 +12,5 @@ const headersContent = `
   Access-Control-Allow-Headers: *
 `;
 
-await writeFile('._headers', headersContent);
+await writeFile('_headers', headersContent);
 console.log(`✅ _headers file generated with origin: ${origin}`);
