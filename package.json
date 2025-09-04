@@ -2,12 +2,14 @@
   "name": "photo-scanner",
   "private": true,
   "scripts": {
+    "generate-headers": "node generate-headers.js",
     "start": "node src/index.js",
-    "build": "npm install --no-package-lock && node src/index.js",
+    "build": "npm install --no-package-lock && npm run generate-headers && node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "type": "module",
   "dependencies": {
+    "dotenv": "^16.6.1",
     "sharp": "^0.33.5"
   }
 }
