@@ -3,17 +3,17 @@ import { join, parse, dirname } from 'path';
 import { mkdir } from 'fs/promises';
 import { config } from '../config.js';
 
-export async function processImage(imagePath) {
+export async function processImage(imagePath, relativeFolder = '') {
   const { name, ext } = parse(imagePath);
   const optimizedDir = config.directories.optimized;
   
   try {
     // Ensure thumbnail directory exists
-    const thumbnailDir = join(optimizedDir, 'thumbnails');
+    const thumbnailDir = join(optimizedDir, 'thumbnails', relativeFolder);
     await mkdir(thumbnailDir, { recursive: true });
 
     // Ensure regular directory exists
-    const regularDir = join(optimizedDir, 'regular');
+    const regularDir = join(optimizedDir, 'regular', relativeFolder);
     await mkdir(regularDir, { recursive: true });
 
     // Create thumbnail
