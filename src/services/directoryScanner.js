@@ -25,7 +25,7 @@ export async function scanDirectory(dir) {
         }
         
         // Process the image and get optimized versions
-        const processedImage = await processImage(path);
+        const processedImage = await processImage(path, relativePath);
         if (processedImage) {
           const urlBase = config.baseUrl;
           results[relativePath].push({
